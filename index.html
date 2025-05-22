@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ar" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>جدول تمارين المنزل مع Bar وDumbbell</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #fff;
+      direction: rtl;
+      margin: 0;
+      padding: 15px;
+    }
+    h2 {
+      color: #f8b500;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .week-selector {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    select, button {
+      padding: 8px 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    select {
+      min-width: 120px;
+    }
+    button {
+      background-color: #f8b500;
+      color: black;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #d49700;
+    }
+    .day-section {
+      margin-bottom: 30px;
+      background-color: #1e1e1e;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .day-section h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #f8b500;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+      table-layout: fixed;
+      word-wrap: break-word;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 6px;
+      text-align: center;
+      vertical-align: middle;
+      color: #fff;
+      font-size: 14px;
+    }
+    th {
+      background-color: #f8b500;
+      color: black;
+    }
+    td input[type="number"], td input[type="text"] {
+      width: 100%;
+      padding: 4px 5px;
+      background-color: #333;
+      border: none;
+      color: #fff;
+      box-sizing: border-box;
+      font-size: 13px;
+      text-align: center;
+      border-radius: 3px;
+    }
+    td input[readonly] {
+      background-color: #555;
+      cursor: default;
+    }
+    .add-exercise-btn {
+      background-color: #2d7a2d;
+      color: #fff;
+      border: none;
+      padding: 8px 15px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      transition: background-color 0.3s ease;
+    }
+    .add-exercise-btn:hover {
+      background-color: #236123;
+    }
+    .delete-exercise {
+      background-color: #c62828;
+      color: #fff;
+      border: none;
+      padding: 4px 7px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    .delete-exercise:hover {
+      background-color: #9b1c1c;
+    }
+    textarea {
+      width: 100%;
+      min-height: 70px;
+      background-color: #333;
+      border: none;
+      color: #fff;
+      padding: 7px;
+      font-size: 14px;
+      border-radius: 5px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      font-weight: bold;
+      color: #f8b500;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <h2>جدول تمارين المنزل مع Bar وDumbbell</h2>
+
+    <div class="week-selector">
+      <label for="weekSelect">اختر الأسبوع:</label>
+      <select id="weekSelect"></select>
+      <button onclick="addWeek()">➕ إضافة أسبوع جديد</button>
+      <button onclick="exportPDF()">تصدير PDF</button>
+      <button onclick="clearAllData()">مسح كل البيانات</button>
+    </div>
+
+    <div id="weeksContainer">
+      <!-- أسابيع وأيام التمارين تظهر هنا -->
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const daysOfWeek = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+    let data = {
+      weeks: [
+        {
+          name: "الأسبوع 1",
+          days: {
+            "السبت": [
+              {name:"سكوات بدون معدات - Home Game", sessions:"3", reps:"12", weight:"0", percent:"0", duration:"10", progress:"0"},
+              {name:"بريس الصدر بالبار - Bar", sessions:"3", reps:"10", weight:"20", percent:"70", duration:"15", progress:"0"},
+              {name:"تمرين العضلة ذات الرأسين دمبل - Dumbbell", sessions:"3", reps:"12", weight:"8", percent:"75", duration:"10", progress:"0"}
+            ],
+            "الأحد": [
+              {name:"جري في المكان - Home Game", sessions:"4", reps:"30", weight:"0", percent:"0", duration:"15", progress:"0"},
+              {name:"ديدليفت بالبار - Bar", sessions:"3", reps:"8", weight:"40", percent:"80", duration:"20", progress:"0"},
+              {name:"رفرفة جانبية دمبل - Dumbbell", sessions:"3", reps:"15", weight:"5", percent:"70", duration:"10", progress:"0"}
+            ],
+            "الاثنين": [
+              {name:"تمارين بوش أب - Home Game", sessions:"4", reps:"15", weight:"0", percent:"0", duration:"12", progress:"0"},
+              {name:"سحب بار للأعلى - Bar", sessions:"3", reps:"10", weight:"30", percent:"75", duration:"15", progress:"0"},
+              {name:"تمرين عضلة الترايسبس دمبل - Dumbbell", sessions:"3", reps:"12", weight:"6", percent:"70", duration:"10", progress:"0"}
+            ],
+            "الثلاثاء": [
+              {name:"قفز الحبل - Home Game", sessions:"5", reps:"50", weight:"0", percent:"0", duration:"15", progress:"0"},
+              {name:"ضغط عسكري بار - Bar", sessions:"3", reps:"8", weight:"25", percent:"75", duration:"15", progress:"0"},
+              {name:"تمرين الكتف الأمامي دمبل - Dumbbell", sessions:"3", reps:"12", weight:"7", percent:"75", duration:"10", progress:"0"}
+            ],
+            "الأربعاء": [
+              {name:"شد جسم - Home Game", sessions:"3", reps:"12", weight:"0", percent:"0", duration:"10", progress:"0"},
+              {name:"ثني العضلة ذات الرأسين بالبار - Bar", sessions:"3", reps:"10", weight:"20", percent:"70", duration:"12", progress:"0"},
+              {name:"تمرين الظهر دمبل - Dumbbell", sessions:"3", reps:"12", weight:"8", percent:"75", duration:"10", progress:"0"}
+            ],
+            "الخميس": [
+              {name:"تمارين تقوية البطن - Home Game", sessions:"3", reps:"20", weight:"0", percent:"0", duration:"10", progress:"0"},
+              {name:"بار رو - Bar", sessions:"3", reps:"10", weight:"30", percent:"75", duration:"15", progress:"0"},
+              {name:"تمرين عضلة الصدر دمبل - Dumbbell", sessions:"3", reps:"12", weight:"10", percent:"75", duration:"12", progress:"0"}
+            ],
+            "الجمعة": [
+              {name:"تمرين اليوغا - Home Game", sessions:"1", reps:"-", weight:"0", percent:"0", duration:"30", progress:"0"},
+              {name:"بار سكوات - Bar", sessions:"3", reps:"8", weight:"40", percent:"80", duration:"20", progress:"0"},
+              {name:"تمرين الأرجل دمبل - Dumbbell", sessions:"3", reps:"12", weight:"15", percent:"80", duration:"15", progress:"0"}
+            ]
+          }
+        }
+      ]
+    };
+
+    // حفظ البيانات بالlocalStorage
+    function saveData() {
+      localStorage.setItem("gymWeeklyData", JSON.stringify(data));
+    }
+
+    // تحميل البيانات من localStorage
+    function loadData() {
+      const saved = localStorage.getItem("gymWeeklyData");
+      if (saved) {
+        data = JSON.parse(saved);
+      }
+    }
+
+    // تحديث حقل التمرين مع إعادة حساب التقدم
+    function updateExercise(weekIdx, day, exIdx, field, value) {
+      const exercise = data.weeks[weekIdx].days[day][exIdx];
+      exercise[field] = value;
+
+      // تحديث التقدم كمثال (حسب الوزن والتكرار)
+      exercise.progress = `${exercise.weight || 0} × ${exercise.reps || 0}`;
+
+      // تحديث قيمة التقدم في DOM بدون إعادة رسم الجدول
+      const progressInput = document.querySelector(`#week-${weekIdx}-day-${day} tbody tr:nth-child(${exIdx + 1}) input.progress-field`);
+      if (progressInput) {
+        progressInput.value = exercise.progress;
+      }
+
+      saveData();
+    }
+
+    // حذف تمرين
+    function deleteExercise(weekIdx, day, exIdx) {
+      data.weeks[weekIdx].days[day].splice(exIdx, 1);
+      saveData();
+      renderWeekContent(weekIdx);
+    }
+
+    // إضافة تمرين جديد
+    function addExercise(weekIdx, day) {
+      const newEx = {name:"تمرين جديد", sessions:"1", reps:"10", weight:"0", percent:"0", duration:"10", progress:"0"};
+      data.weeks[weekIdx].days[day].push(newEx);
+      saveData();
+      renderWeekContent(weekIdx);
+    }
+
+    // إنشاء جدول التمارين ليوم محدد
+    function createDayTable(weekIdx, day) {
+      const table = document.createElement("table");
+
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+
+      const headers = ["التمرين", "الجلسات", "التكرار", "الوزن (كغ)", "النسبة %", "المدة (دقائق)", "التقدم", "إزالة"];
+      headers.forEach(text => {
+        const th = document.createElement("th");
+        th.textContent = text;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      const exercises = data.weeks[weekIdx].days[day] || [];
+      exercises.forEach((ex, exIdx) => {
+        const tr = document.createElement("tr");
+
+        // اسم التمرين (نص)
+        const tdName = document.createElement("td");
+        tdName.textContent = ex.name;
+        tr.appendChild(tdName);
+
+        // الجلسات
+        const tdSessions = document.createElement("td");
+        const sessionsInput = document.createElement("input");
+        sessionsInput.type = "number";
+        sessionsInput.min = "0";
+        sessionsInput.value = ex.sessions;
+        sessionsInput.oninput = (e) => updateExercise(weekIdx, day, exIdx, "sessions", e.target.value);
+        tdSessions.appendChild(sessionsInput);
+        tr.appendChild(tdSessions);
+
+        // التكرار
+        const tdReps = document.createElement("td");
+        const repsInput = document.createElement("input");
+        repsInput.type = "number";
+        repsInput.min = "0";
+        repsInput.value = ex.reps;
+        repsInput.oninput = (e) => updateExercise(weekIdx, day, exIdx, "reps", e.target.value);
+        tdReps.appendChild(repsInput);
+        tr.appendChild(tdReps);
+
+        // الوزن
+        const tdWeight = document.createElement("td");
+        const weightInput = document.createElement("input");
+        weightInput.type = "number";
+        weightInput.min = "0";
+        weightInput.value = ex.weight;
+        weightInput.oninput = (e) => updateExercise(weekIdx, day, exIdx, "weight", e.target.value);
+        tdWeight.appendChild(weightInput);
+        tr.appendChild(tdWeight);
+
+        // النسبة
+        const tdPercent = document.createElement("td");
+        const percentInput = document.createElement("input");
+        percentInput.type = "number";
+        percentInput.min = "0";
+        percentInput.value = ex.percent;
+        percentInput.oninput = (e) => updateExercise(weekIdx, day, exIdx, "percent", e.target.value);
+        tdPercent.appendChild(percentInput);
+        tr.appendChild(tdPercent);
+
+        // المدة
+        const tdDuration = document.createElement("td");
+        const durationInput = document.createElement("input");
+        durationInput.type = "number";
+        durationInput.min = "0";
+        durationInput.value = ex.duration;
+        durationInput.oninput = (e) => updateExercise(weekIdx, day, exIdx, "duration", e.target.value);
+        tdDuration.appendChild(durationInput);
+        tr.appendChild(tdDuration);
+
+        // التقدم (readonly)
+        const tdProgress = document.createElement("td");
+        const progressInput = document.createElement("input");
+        progressInput.type = "text";
+        progressInput.readOnly = true;
+        progressInput.value = ex.progress;
+        progressInput.className = "progress-field";
+        tdProgress.appendChild(progressInput);
+        tr.appendChild(tdProgress);
+
+        // زر حذف
+        const tdDelete = document.createElement("td");
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "حذف";
+        delBtn.className = "delete-exercise";
+        delBtn.onclick = () => deleteExercise(weekIdx, day, exIdx);
+        tdDelete.appendChild(delBtn);
+        tr.appendChild(tdDelete);
+
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      return table;
+    }
+
+    // إنشاء قسم يوم كامل مع جدول التمارين وزر إضافة وملاحظات
+    function createDaySection(weekIdx, day) {
+      const section = document.createElement("div");
+      section.className = "day-section";
+      section.id = `week-${weekIdx}-day-${day}`;
+
+      const title = document.createElement("h3");
+      title.textContent = day;
+      section.appendChild(title);
+
+      // الجدول
+      const table = createDayTable(weekIdx, day);
+      section.appendChild(table);
+
+      // زر إضافة تمرين
+      const addBtn = document.createElement("button");
+      addBtn.textContent = "إضافة تمرين";
+      addBtn.className = "add-exercise-btn";
+      addBtn.onclick = () => addExercise(weekIdx, day);
+      section.appendChild(addBtn);
+
+      // ملاحظات
+      const labelNotes = document.createElement("label");
+      labelNotes.textContent = "ملاحظات اليوم:";
+      section.appendChild(labelNotes);
+
+      const textarea = document.createElement("textarea");
+      textarea.value = data.weeks[weekIdx].days[day].notes || "";
+      textarea.placeholder = "أضف ملاحظاتك هنا...";
+      textarea.oninput = (e) => {
+        if (!data.weeks[weekIdx].days[day].notes) {
+          data.weeks[weekIdx].days[day].notes = "";
+        }
+        data.weeks[weekIdx].days[day].notes = e.target.value;
+        saveData();
+      };
+      section.appendChild(textarea);
+
+      return section;
+    }
+
+    // عرض محتوى الأسبوع (كل الأيام مع التمارين والملاحظات)
+    function renderWeekContent(weekIdx) {
+      const container = document.getElementById("weeksContainer");
+      container.innerHTML = "";
+
+      const week = data.weeks[weekIdx];
+      if (!week) return;
+
+      week.days = week.days || {};
+      daysOfWeek.forEach(day => {
+        if (!week.days[day].notes) week.days[day].notes = "";
+        const daySection = createDaySection(weekIdx, day);
+        container.appendChild(daySection);
+      });
+
+      currentWeekIndex = weekIdx;
+    }
+
+    // عرض خيارات اختيار الأسبوع
+    function renderWeekSelector() {
+      const select = document.getElementById("weekSelect");
+      select.innerHTML = "";
+      data.weeks.forEach((w, i) => {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = w.name;
+        select.appendChild(option);
+      });
+      select.onchange = () => {
+        renderWeekContent(select.value);
+      };
+      if (select.options.length > 0) {
+        select.selectedIndex = 0;
+        renderWeekContent(0);
+      }
+    }
+
+    // إضافة أسبوع جديد فارغ
+    function addWeek() {
+      const newWeekName = `الأسبوع ${data.weeks.length + 1}`;
+      const newDays = {};
+      daysOfWeek.forEach(day => {
+        newDays[day] = [];
+      });
+      data.weeks.push({ name: newWeekName, days: newDays });
+      saveData();
+      renderWeekSelector();
+      selectWeek(data.weeks.length - 1);
+    }
+
+    // اختيار أسبوع محدد
+    function selectWeek(idx) {
+      const select = document.getElementById("weekSelect");
+      select.value = idx;
+      renderWeekContent(idx);
+    }
+
+    // مسح كل البيانات
+    function clearAllData() {
+      if (confirm("هل أنت متأكد أنك تريد مسح كل البيانات؟")) {
+        localStorage.removeItem("gymWeeklyData");
+        data = { weeks: [] };
+        addWeek();
+        renderWeekSelector();
+      }
+    }
+
+    // تصدير PDF
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "a4",
+      });
+
+      let y = 40;
+      doc.setFontSize(18);
+      doc.setTextColor("#f8b500");
+      doc.text("تقرير جدول التمارين الأسبوعي", 40, y);
+      y += 30;
+      doc.setFontSize(12);
+      doc.setTextColor("#000000");
+
+      data.weeks.forEach((week, wIndex) => {
+        doc.setTextColor("#f8b500");
+        doc.text(week.name, 40, y);
+        y += 20;
+
+        daysOfWeek.forEach(day => {
+          doc.setTextColor("#000000");
+          doc.text(day, 50, y);
+          y += 15;
+          const exercises = week.days[day];
+          if (!exercises || exercises.length === 0) {
+            doc.text("لا يوجد تمارين", 60, y);
+            y += 15;
+          } else {
+            exercises.forEach(ex => {
+              let line = `- ${ex.name || "بدون اسم"}: جلسات ${ex.sessions || "-"}، عدات ${ex.reps || "-"}، وزن ${ex.weight || "-"}، نسبة ${ex.percent || "-"}%، مدة ${ex.duration || "-"} د.، تقدم ${ex.progress || "0"}`;
+              const splitText = doc.splitTextToSize(line, 480);
+              doc.text(splitText, 60, y);
+              y += splitText.length * 15;
+              if (y > 750) {
+                doc.addPage();
+                y = 40;
+              }
+            });
+          }
+          // ملاحظات اليوم
+          if (week.days[day].notes) {
+            const notes = `ملاحظات: ${week.days[day].notes}`;
+            const splitNotes = doc.splitTextToSize(notes, 480);
+            doc.setTextColor("#555555");
+            doc.text(splitNotes, 60, y);
+            y += splitNotes.length * 15;
+          }
+          y += 10;
+        });
+
+        y += 20;
+        if (y > 750) {
+          doc.addPage();
+          y = 40;
+        }
+      });
+
+      doc.save("تمارين_الأسبوع.pdf");
+    }
+
+    let currentWeekIndex = 0;
+
+    // تحميل البيانات ثم عرض الجدول
+    loadData();
+    if(data.weeks.length === 0) addWeek();
+    renderWeekSelector();
+
+  </script>
+
+</body>
+</html>
